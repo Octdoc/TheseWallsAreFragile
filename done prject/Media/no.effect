@@ -1,0 +1,22 @@
+Texture2D tex;
+SamplerState ss;
+
+cbuffer EffectBuffer
+{
+	float brightness;
+	float2 size;
+	float padding[7];
+};
+
+struct PixelInputType
+{
+	float4 position:SV_POSITION;
+	float2 tex:TEXCOORD;
+};
+
+float4 main(PixelInputType input) : SV_TARGET
+{
+	float4 color = tex.Sample(ss, input.tex);
+	color.rgb *= brightness;
+	return color;
+}
