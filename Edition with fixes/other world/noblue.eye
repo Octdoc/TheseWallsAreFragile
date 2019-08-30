@@ -1,3 +1,4 @@
+// no files need editing
 Texture2D tex;
 SamplerState ss;
 
@@ -23,8 +24,8 @@ float4 main(PixelInputType input) : SV_TARGET
 	float intensity = saturate(dot(normalize(input.normal), lightDirection));
 	intensity = ambient + (1.0f - ambient) * intensity;
 	color.rgb *= lightColor.rgb * intensity;
-	if (color.r == 0.0f && color.b == 0.0f)
+	if (color.r == 0.0f && color.g == 0.0f)
 		clip(-1.0f);
-	color.g = 0.0f;
+	color.b = 0.0f;
 	return color;
 }

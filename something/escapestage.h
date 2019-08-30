@@ -26,6 +26,7 @@ namespace twaf
 		float m_timecounter;
 		bool m_solved;
 		bool m_enemyRuns;
+		bool m_stageLoaded;
 
 		std::wstring m_enterDialog;
 		std::wstring m_issueDialog;
@@ -46,9 +47,10 @@ namespace twaf
 
 		virtual void FileDrop(const wchar_t* filename, std::wstring& name, std::wstring& extension);
 
+		inline void LoadingDone() { m_stageLoaded = true; }
 		inline const wchar_t* EnterDialog() { return m_enterDialog.c_str(); }
 		inline const wchar_t* IssueDialog() { return m_issueDialog.c_str(); }
-		inline bool Solved() { return m_solved; }
+		inline bool Solved() { return m_stageLoaded && m_solved; }
 	};
 
 	class EscapeStage0 :public EscapeStage

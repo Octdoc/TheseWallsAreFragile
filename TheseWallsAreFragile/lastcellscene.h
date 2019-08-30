@@ -34,5 +34,6 @@ namespace twaf
 		virtual void KeyDown(int keyCode) override;
 		virtual void KeyUp(int keyCode) override;
 		virtual bool FileDrop(const wchar_t* filename) override;
+		virtual bool AllowExit() override;
 	};
 }

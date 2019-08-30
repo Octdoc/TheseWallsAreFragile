@@ -37,6 +37,10 @@ namespace twaf
 	{
 		Shutdown();
 	}
+	HWND Graphics_DX::getHWND()
+	{
+		return m_hwnd;
+	}
 	void Graphics_DX::Init(HWND hwnd)
 	{
 		if (!m_font.Load(L"Media/font16.png"))

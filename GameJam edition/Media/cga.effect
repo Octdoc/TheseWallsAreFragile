@@ -1,0 +1,39 @@
+Texture2D tex;
+SamplerState ss;
+
+cbuffer EffectBuffer
+{
+	float brightness;
+	float2 size;
+	float padding[7];
+};
+
+struct PixelInputType
+{
+	float4 position:SV_POSITION;
+	float2 tex:TEXCOORD;
+};
+
+float4 main(PixelInputType input) : SV_TARGET
+{
+	float4 color = tex.Sample(ss, input.tex);
+	color.rgb *= brightness;
+	float4 colors[]= {
+		float4(1.0f, 1.0f, 1.0f, 1.0f),
+		float4(0.33f, 1.0f, 1.0f, 1.0f),
+		float4(1.0f, 0.33f, 1.0f, 1.0f),
+		float4(0.0f, 0.0f, 0.0f, 1.0f)
+	};
+	float mindst = 1000.0f;
+	int mindistindex = 0;
+	for (int i = 0; i < 4; i++)
+	{
+		float d = dot(colors[i] - color, colors[i] - color);
+		if (d < mindst)
+		{
+			mindst = d;
+			mindistindex = i;
+		}
+	}
+	return colors[mindistindex];
+}

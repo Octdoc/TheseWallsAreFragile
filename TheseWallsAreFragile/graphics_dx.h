@@ -60,6 +60,7 @@ namespace twaf
 	public:
 		Graphics_DX();
 		virtual ~Graphics_DX() override;
+		virtual HWND getHWND() override;
 
 		void Init(HWND hwnd);
 		void Shutdown();

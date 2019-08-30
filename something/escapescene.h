@@ -40,6 +40,7 @@ namespace twaf
 
 		unsigned m_dialogIndex;
 		std::wstring m_userName;
+		bool m_screenIsBlank;
 
 	private:
 		void SetCursorIcon();
@@ -55,6 +56,9 @@ namespace twaf
 		void StartScreenShift();
 		void FirstUpdate(float deltaTime);
 		void SecondUpdate(float deltaTime);
+		void BlankScreenUpdate();
+
+		void CheckBlankScreen();
 
 		const wchar_t* EpilogDialog();
 		void CreateDialogWindow();
@@ -72,5 +76,6 @@ namespace twaf
 		virtual void KeyDown(int keyCode) override;
 		virtual void KeyUp(int keyCode) override;
 		virtual bool FileDrop(const wchar_t* filename) override;
+		virtual bool AllowExit() override;
 	};
 }

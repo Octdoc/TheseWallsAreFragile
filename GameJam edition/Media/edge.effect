@@ -1,0 +1,36 @@
+Texture2D tex;
+SamplerState ss;
+
+cbuffer EffectBuffer
+{
+	float brightness;
+	float2 size;
+	float padding[7];
+};
+
+struct PixelInputType
+{
+	float4 position:SV_POSITION;
+	float2 tex:TEXCOORD;
+};
+
+float4 main(PixelInputType input) : SV_TARGET
+{
+	float filter[3][3] = {
+		{ 0.0f, -1.0f, 0.0f },
+		{ -1.0f, 4.0f, -1.0f },
+		{ 0.0f, -1.0f, 0.0f }};
+	float lum = 0.0f;
+	for (int x = 0; x < 3; x++)
+	{
+		for (int y = 0; y < 3; y++)
+		{
+			float4 color = tex.Sample(ss, float2(
+				input.tex.x + float(x - 1) / size.x,
+				input.tex.y + float(y - 1) / size.y));
+			lum += (color.r*0.3f + color.g * 0.59f + color.b * 0.11f) * filter[x][y];
+		}
+	}
+	lum *= brightness;
+	return (float4(lum, lum, lum, 1.0f));
+}

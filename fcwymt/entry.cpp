@@ -1,4 +1,4 @@
-//First Cell WQhere You Meet Twaf
+//First Cell Where You Meet The oldman
 
 #include "cell1scene.h"
 

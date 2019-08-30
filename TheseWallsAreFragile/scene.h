@@ -18,5 +18,6 @@ namespace twaf
 		virtual void KeyDown(int keyCode) = 0;
 		virtual void KeyUp(int keyCode) = 0;
 		virtual bool FileDrop(const wchar_t* filename) = 0;
+		virtual bool AllowExit() = 0;
 	};
 }

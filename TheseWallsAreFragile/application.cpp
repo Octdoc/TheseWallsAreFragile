@@ -189,7 +189,7 @@ namespace twaf
 				auto currentTime = std::chrono::steady_clock::now();
 				double deltaTime = std::chrono::duration<double>(currentTime - prevTime).count();
 				prevTime = currentTime;
-				Update(deltaTime);
+				Update(min(deltaTime, 0.05f));
 			}
 		}
 	}
@@ -224,6 +224,10 @@ namespace twaf
 			return 0;
 		case WM_KEYUP:
 			KeyUpEvent(wparam);
+			return 0;
+		case WM_CLOSE:
+			if (!m_scene || m_scene->AllowExit())
+				PostQuitMessage(0);
 			return 0;
 		case WM_DESTROY:
 			PostQuitMessage(0);

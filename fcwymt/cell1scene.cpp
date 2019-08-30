@@ -2,183 +2,161 @@
 
 namespace twaf
 {
+	bool Cell1Scene::OnDialogBox(int x, int y)
+	{
+		return x > 65 && x < 834 && y > 339 && y < 484;
+	}
+	bool Cell1Scene::OnOldman(int x, int y)
+	{
+		return x > 574 && x < 720 && y > 254 && y < 400;
+	}
+	bool Cell1Scene::OnDoor(int x, int y)
+	{
+		return x > 370 && x < 525 && y > 170 && y < 390;
+	}
+	bool Cell1Scene::CanClickOldman()
+	{
+		return m_step == 0 ||
+			m_step == 5 ||
+			m_step == 9 ||
+			m_step == 11;
+	}
+	bool Cell1Scene::CanClickDialog()
+	{
+		return m_step == 1 ||
+			m_step == 2 ||
+			m_step == 3 ||
+			m_step == 4 ||
+			m_step == 6 ||
+			m_step == 7 ||
+			m_step == 8 ||
+			m_step == 12 ||
+			m_step == 13 ||
+			m_step == 14 ||
+			m_step == 15 ||
+			m_step == 16;
+	}
+	bool Cell1Scene::CanClickDoor()
+	{
+		return m_step == 11 ||
+			m_step == 17;
+	}
 	void Cell1Scene::SetCursorIcon()
 	{
 		bool clickable = false;
-		if (m_doorTexture)
-			if (m_dialogIndex > 11 && m_dialogTexture == nullptr)
-				if (m_mousex > 370 && m_mousex < 525 && m_mousey > 170 && m_mousey < 390)
-					clickable = true;
-		if (m_dialogIndex == 0)
-			if (m_mousex > 574 && m_mousex < 720 && m_mousey > 254 && m_mousey < 400)
-				clickable = true;
-		if (m_dialogTexture)
-			if (OnDialogBox(m_mousex, m_mousey))
-				clickable = true;
+		if (CanClickOldman() && OnOldman(m_mousex, m_mousey))
+			clickable = true;
+		else if (CanClickDoor() && OnDoor(m_mousex, m_mousey))
+			clickable = true;
+		else if (CanClickDialog() && OnDialogBox(m_mousex, m_mousey))
+			clickable = true;
+
 		if (m_clickable != clickable)
 		{
 			m_clickable = clickable;
 			SetCursor(LoadCursor(NULL, m_clickable ? IDC_HAND : IDC_ARROW));
 		}
 	}
-	bool Cell1Scene::OnDialogBox(int x, int y)
+	void Cell1Scene::ClickEvent(int x, int y)
 	{
-		return x > 65 && x < 834 && y > 339 && y < 484;
+		if (CanClickOldman() && OnOldman(m_mousex, m_mousey))
+			ProgressStory(m_step + 1);
+		else if (CanClickDoor() && OnDoor(m_mousex, m_mousey))
+			ProgressStory(m_step + 1);
+		else if (CanClickDialog() && OnDialogBox(m_mousex, m_mousey))
+			ProgressStory(m_step + 1);
 	}
-	void Cell1Scene::DialogClick()
+	void Cell1Scene::NewDialogbox(const wchar_t* text)
 	{
 		SAFE_DELETE(m_dialogTexture);
-		m_dialogClicked = true;
-		if ((m_dialogIndex == 4 || m_dialogIndex == 7) && m_dialogConditionMet)
-		{
-			m_dialogConditionMet = false;
-			m_timeCounter = 0.0f;
-		}
+		m_dialogTexture = m_graphics.CreateTextTexture(text);
 	}
-	const wchar_t* Cell1Scene::DialogText()
+	void Cell1Scene::ProgressStory(int newStep)
 	{
-		static LPCWSTR dialog[] = {
-			L"",
-			L"You are the one with the otherworldly\npowers.",
-			L"I was wondering if you would come.",
-			L"I will be here whenever you need\nguidance.",
-			L"Aren't you bored?",
-			L"I know a way out. There was a door.png\nnext to where you came in.",
-			L"You have the power to install it on the\nwall.",
-			L"Before you go. You need to know one\nthing.",
-			L"This world is incomplete.",
-			L"I cannot escape because nothing exists\noutside of this prison.",
-			L"You however have eyes not of this world\nand arms passing things over.",
-			L"You can make it out. And when you do,\nI ask you to rescue me too."
-		};
-		if ((sizeof(dialog) / sizeof(LPCWSTR)) <= m_dialogIndex)
-			return nullptr;
-		return dialog[m_dialogIndex++];
-	}
-	void Cell1Scene::CreateDialogWindow()
-	{
-		SAFE_DELETE(m_dialogTexture);
-		const wchar_t* text = DialogText();
-		if (text)
+		m_timeCounter = 0.0f;
+		m_step = newStep;
+		switch (m_step)
 		{
-			if (text[0])
-			{
-				m_dialogTexture = m_graphics.CreateTextTexture(text);
-			}
-			else
-			{
-				std::wstring textMaker;
-				switch (m_dialogIndex)
-				{
-				case 1:
-					textMaker = L"Welcome. You are " + m_userName + L", yes?";
-					break;
-				}
-				m_dialogTexture = m_graphics.CreateTextTexture(textMaker.c_str());
-			}
-		}
-	}
-	void Cell1Scene::UpdateDialog()
-	{
-		if (!m_dialogConditionMet)
-		{
-			if (m_dialogIndex == 4)
-			{
-				if (m_timeCounter > 5.0f)
-				{
-					m_dialogConditionMet = true;
-					m_dialogClicked = true;
-				}
-			}
-			if (m_dialogIndex == 7)
-			{
-				if (m_timeCounter > 1.5f && m_doorTexture != nullptr)
-				{
-					m_dialogConditionMet = true;
-					m_dialogClicked = true;
-				}
-				if (m_timeCounter > 15.0f && m_doorTexture == nullptr)
-				{
-					SAFE_DELETE(m_dialogTexture);
-					m_dialogTexture = m_graphics.CreateTextTexture(L"Simply drop the file on the window.");
-				}
-			}
-		}
-		if (m_dialogConditionMet && m_dialogClicked)
-			CreateDialogWindow();
-		m_dialogClicked = false;
-		if (m_dialogTexture)
-			m_graphics.RenderDialog(m_dialogTexture, m_oldmanTexture, float2(830.0f, 430.0f), float2(64.0f));
-	}
-	void Cell1Scene::GoOutTheDoor()
-	{
-		if (m_dialogIndex > 11 &&
-			m_dialogTexture == nullptr)
-		{
+		case 1:
+			NewDialogbox((L"Welcome. You are " + m_userName + L", yes?").c_str());
+			break;
+		case 2:
+			NewDialogbox(L"You are the one with the otherworldly\npowers.");
+			break;
+		case 3:
+			NewDialogbox(L"I was wondering if you would come.");
+			break;
+		case 4:
+			NewDialogbox(L"I will be here whenever you need\nguidance.");
+			break;
+		case 5:
+			SAFE_DELETE(m_dialogTexture);
+			break;
+		case 6:
+			NewDialogbox(L"Are you not bored?");
+			break;
+		case 7:
+			NewDialogbox(L"I know a way out. There was a door.png\nnext to where you came in.");
+			break;
+		case 8:
+			NewDialogbox(L"You have the power to install it on the\nwall.");
+			break;
+		case 9:
+			SAFE_DELETE(m_dialogTexture);
+			break;
+		case 10:
+			NewDialogbox(L"Simply drop the file on the window.");
+			break;
+		case 11:
+			SAFE_DELETE(m_dialogTexture);
+			break;
+		case 12:
+			NewDialogbox(L"Before you go. You need to know one\nthing.");
+			break;
+		case 13:
+			NewDialogbox(L"This world is incomplete.");
+			break;
+		case 14:
+			NewDialogbox(L"I cannot escape because nothing exists\noutside of this prison.");
+			break;
+		case 15:
+			NewDialogbox(L"You however have eyes not of this world\nand arms passing things over.");
+			break;
+		case 16:
+			NewDialogbox(L"You can make it out. And when you do,\nI ask you to rescue me too.");
+			break;
+		case 17:
+			SAFE_DELETE(m_dialogTexture);
+			break;
+		case 18:
 			m_brightness -= 0.001f;
-			m_timeCounter = 0.0f;
+			break;
+		case 19:
+			NewDialogbox(L"There should be something somewhere...");
+			break;
 		}
 	}
-	void Cell1Scene::FirstUpdateLoop(float deltaTime)
+	void Cell1Scene::TimedProgressionCheck()
 	{
-		m_timeCounter += deltaTime;
-		float speed = 1.0f * deltaTime;
-
-		m_graphics.UpdateCamera();
-		m_graphics.SetDefaultVertexShader();
-		m_pixelShader->SetShader();
-		m_graphics.WriteLightData(
-			m_lightColor,
-			float3(m_oldman.position.x, 1.0f, 0.3f),
-			0.25f);
-		m_graphics.ClearScreen();
-
-		m_roomTexture->SetTexture();
-		Positionf entity;
-		m_graphics.WriteEntityData(entity);
-		m_roomModel->Render();
-
-		if (m_doorTexture)
+		switch (m_step)
 		{
-			m_doorTexture->SetTexture();
-			m_graphics.WriteEntityData(m_door);
-			m_imageModel->Render();
+		case 5:
+			if (m_timeCounter > 3.0f)
+				ProgressStory(6);
+			break;
+		case 9:
+			if (m_timeCounter > 5.0f)
+				ProgressStory(10);
+			break;
+		case 11:
+			if (m_timeCounter > 1.5f)
+				ProgressStory(12);
+			break;
+		case 18:
+			if (m_timeCounter > 4.0f)
+				ProgressStory(19);
+			break;
 		}
-
-		m_oldmanTexture->SetTexture();
-		m_graphics.WriteEntityData(m_oldman);
-		m_imageModel->Render();
-
-		UpdateDialog();
-
-		if (m_brightness < 1.0f)
-		{
-			m_brightness -= deltaTime * 0.6f;
-			if (m_brightness < 0.0f)
-			{
-				m_timeCounter = 0.0f;
-				SAFE_DELETE(m_doorTexture);
-			}
-		}
-		float effectBuffer[8] = { max(m_brightness, 0.0f), 180.0f, 100.0f };
-		m_graphics.WriteEffectBuffer(effectBuffer);
-		m_graphics.Present();
-	}
-	void Cell1Scene::SecondUpdateLoop(float deltaTime)
-	{
-		m_graphics.ClearScreen();
-		if (m_dialogTexture == nullptr)
-		{
-			if (m_timeCounter > 7.0f)
-				m_dialogTexture = m_graphics.CreateTextTexture(L"There should be something somewhere...");
-			else
-				m_timeCounter += deltaTime;
-		}
-		if (m_dialogTexture)
-			m_graphics.RenderDialog(m_dialogTexture);
-		float effectBuffer[8] = { 1.0f };
-		m_graphics.WriteEffectBuffer(effectBuffer);
-		m_graphics.Present();
 	}
 	Cell1Scene::Cell1Scene(Graphics& graphics) :
 		m_graphics(graphics),
@@ -192,9 +170,9 @@ namespace twaf
 		m_pixelShader(nullptr),
 		m_mousex(0), m_mousey(0),
 		m_clickable(false),
+		m_step(0),
 		m_userName(),
 		m_dialogTexture(nullptr),
-		m_dialogIndex(0),
 		m_dialogConditionMet(false),
 		m_timeCounter(0.0f),
 		m_brightness(1.0f),
@@ -237,10 +215,45 @@ namespace twaf
 	void Cell1Scene::Update(double deltaTime)
 	{
 		SetCursorIcon();
-		if (m_brightness < 0.0f)
-			SecondUpdateLoop(deltaTime);
-		else
-			FirstUpdateLoop(deltaTime);
+		m_timeCounter += deltaTime;
+		TimedProgressionCheck();
+
+		float speed = 1.0f * deltaTime;
+
+		m_graphics.UpdateCamera();
+		m_graphics.SetDefaultVertexShader();
+		m_pixelShader->SetShader();
+		m_graphics.WriteLightData(
+			m_lightColor,
+			float3(m_oldman.position.x, 1.0f, 0.3f),
+			0.25f);
+		m_graphics.ClearScreen();
+
+		m_roomTexture->SetTexture();
+		Positionf entity;
+		m_graphics.WriteEntityData(entity);
+		m_roomModel->Render();
+
+		if (m_doorTexture)
+		{
+			m_doorTexture->SetTexture();
+			m_graphics.WriteEntityData(m_door);
+			m_imageModel->Render();
+		}
+
+		m_oldmanTexture->SetTexture();
+		m_graphics.WriteEntityData(m_oldman);
+		m_imageModel->Render();
+
+		if (m_dialogTexture)
+			m_graphics.RenderDialog(m_dialogTexture, m_oldmanTexture, float2(830.0f, 430.0f), float2(64.0f));
+
+		if (m_brightness < 1.0f)
+			m_brightness -= deltaTime * 0.6f;
+
+		float effectBuffer[8] = { max(m_brightness, 0.0f), 180.0f, 100.0f };
+		m_graphics.WriteEffectBuffer(effectBuffer);
+		m_graphics.Present();
 	}
 	void Cell1Scene::MouseMove(int x, int y, int dx, int dy)
 	{
@@ -252,45 +265,20 @@ namespace twaf
 	}
 	void Cell1Scene::MouseLButtonUp(int x, int y)
 	{
-		if (x > 370 && x < 525 && y > 170 && y < 390)
-			GoOutTheDoor();
-		if (x > 574 && x < 720 && y > 254 && y < 400)
-			if (m_dialogIndex == 0)
-			{
-				m_dialogConditionMet = true;
-				m_dialogClicked = true;
-			}
-		if (OnDialogBox(x, y))
-			DialogClick();
+		ClickEvent(x, y);
 	}
 	void Cell1Scene::MouseRButtonDown(int x, int y)
 	{
 	}
 	void Cell1Scene::MouseRButtonUp(int x, int y)
 	{
-		if (x > 370 && x < 525 && y > 170 && y < 390)
-			GoOutTheDoor();
-		if (x > 574 && x < 720 && y > 254 && y < 400)
-			if (m_dialogIndex == 0)
-			{
-				m_dialogConditionMet = true;
-				m_dialogClicked = true;
-			}
-		if (OnDialogBox(x, y))
-			DialogClick();
+		ClickEvent(x, y);
 	}
 	void Cell1Scene::KeyDown(int keyCode)
 	{
 	}
 	void Cell1Scene::KeyUp(int keyCode)
 	{
-		switch (keyCode)
-		{
-		case VK_RETURN:
-		case VK_SPACE:
-			DialogClick();
-			break;
-		}
 	}
 	bool Cell1Scene::FileDrop(const wchar_t* filename)
 	{
@@ -331,16 +319,17 @@ namespace twaf
 			if (infile.is_open())
 			{
 				std::string buffer;
-				int red, green, blue;
-				infile >> buffer;
-				if (buffer == "red:")
-					infile >> red;
-				infile >> buffer;
-				if (buffer == "green:")
-					infile >> green;
-				infile >> buffer;
-				if (buffer == "blue:")
-					infile >> blue;
+				int red = 255, green = 255, blue = 255;
+				do
+				{
+					infile >> buffer;
+					if (buffer == "red:")
+						infile >> red;
+					else if (buffer == "green:")
+						infile >> green;
+					else if (buffer == "blue:")
+						infile >> blue;
+				} while (!infile.eof());
 				m_lightColor.x = (float)red / 255.0f;
 				m_lightColor.y = (float)green / 255.0f;
 				m_lightColor.z = (float)blue / 255.0f;
@@ -361,14 +350,18 @@ namespace twaf
 		{
 			SAFE_DELETE(m_doorTexture);
 			m_doorTexture = m_graphics.LoadTexture(filename);
-			if (m_dialogIndex <= 7)
-			{
-				m_dialogIndex = 7;
-				m_timeCounter = 0.0f;
-			}
+			if (m_step < 11)
+				ProgressStory(11);
 			return true;
 		}
 
+		return false;
+	}
+	bool Cell1Scene::AllowExit()
+	{
+		int ret = MessageBox(m_graphics.getHWND(), L"Are you sure you want to leave the old man imprisoned?", L"Return to the real world alone?", MB_YESNO);
+		if (ret == IDYES)
+			return true;
 		return false;
 	}
 }

@@ -30,6 +30,7 @@ namespace twaf
 	public:
 		Graphics() = default;
 		virtual ~Graphics() = default;
+		virtual HWND getHWND() = 0;
 
 		virtual void UseEffect(const wchar_t* pixelShaderFileName, unsigned width, unsigned height) = 0;
 		virtual void DontUseEffect() = 0;

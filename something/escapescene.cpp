@@ -84,8 +84,9 @@ namespace twaf
 	}
 	void EscapeScene::FirstUpdate(float deltaTime)
 	{
-		SetCursorIcon();
 		m_timeCounter += deltaTime;
+		BlankScreenUpdate();
+		SetCursorIcon();
 #ifdef FREE_LOOK
 		m_camController.Update(deltaTime);
 #endif
@@ -100,6 +101,7 @@ namespace twaf
 			{
 				m_graphics.getCamera().position.x = m_shiftStartX + 2.5f;
 				m_shiftScreen = false;
+				m_stages[m_currentStage]->LoadingDone();
 				const wchar_t* enterDialog = m_stages[m_currentStage]->EnterDialog();
 				if (enterDialog[0])
 					m_dialogTexture = m_graphics.CreateTextTexture(enterDialog);
@@ -164,6 +166,26 @@ namespace twaf
 			m_graphics.RenderDialog(m_dialogTexture, m_oldmanTexture, float2(830.0f, 430.0f), float2(64.0f));
 		m_graphics.Present();
 	}
+	void EscapeScene::BlankScreenUpdate()
+	{
+		if (m_screenIsBlank && m_timeCounter > 0.75f)
+		{
+			FileDrop(L"other world/redgreenblue.eye");
+			FileDrop(L"other world/warm.light");
+			m_screenIsBlank = false;
+		}
+	}
+	void EscapeScene::CheckBlankScreen()
+	{
+		if (!m_screenIsBlank && 0.0f == (
+			m_visibleColors.x * m_lightColor.x +
+			m_visibleColors.y * m_lightColor.y +
+			m_visibleColors.z * m_lightColor.z))
+		{
+			m_screenIsBlank = true;
+			m_timeCounter = 0.0f;
+		}
+	}
 	const wchar_t* EscapeScene::EpilogDialog()
 	{
 		static LPCWSTR dialog[] = {
@@ -201,7 +223,7 @@ namespace twaf
 				m_dialogTexture = m_graphics.CreateTextTexture(textMaker.c_str());
 			}
 		}
-	}
+			}
 	EscapeScene::EscapeScene(Graphics& graphics) :
 		m_graphics(graphics),
 		m_dialogTexture(nullptr),
@@ -221,7 +243,8 @@ namespace twaf
 		m_pixelShader(nullptr),
 		m_mousex(0), m_mousey(0),
 		m_clickable(false),
-		m_dialogIndex(0)
+		m_dialogIndex(0),
+		m_screenIsBlank(false)
 	{
 		m_lightColor = float4(1.0f, 0.8f, 0.5f, 1.0f);
 		m_visibleColors = 1.0f;
@@ -309,7 +332,7 @@ namespace twaf
 #ifdef FREE_LOOK
 		m_camController.KeyDown(keyCode);
 #endif
-	}
+		}
 	void EscapeScene::KeyUp(int keyCode)
 	{
 #ifdef FREE_LOOK
@@ -367,6 +390,7 @@ namespace twaf
 					m_visibleColors = float3(1.0f, 1.0f, 1.0f);
 			}
 			catch (...) {}
+			CheckBlankScreen();
 		}
 		if (extension == L".light")
 		{
@@ -374,21 +398,23 @@ namespace twaf
 			if (infile.is_open())
 			{
 				std::string buffer;
-				int red = 1.0f, green = 1.0f, blue = 1.0f;
-				infile >> buffer;
-				if (buffer == "red:")
-					infile >> red;
-				infile >> buffer;
-				if (buffer == "green:")
-					infile >> green;
-				infile >> buffer;
-				if (buffer == "blue:")
-					infile >> blue;
+				int red = 255, green = 255, blue = 255;
+				do
+				{
+					infile >> buffer;
+					if (buffer == "red:")
+						infile >> red;
+					else if (buffer == "green:")
+						infile >> green;
+					else if (buffer == "blue:")
+						infile >> blue;
+				} while (!infile.eof());
 				m_lightColor.x = (float)red / 255.0f;
 				m_lightColor.y = (float)green / 255.0f;
 				m_lightColor.z = (float)blue / 255.0f;
 				m_lightColor.w = 1.0f;
 				infile.close();
+				CheckBlankScreen();
 				return true;
 			}
 		}
@@ -409,6 +435,13 @@ namespace twaf
 		//
 		//}
 
+		return false;
+	}
+	bool EscapeScene::AllowExit()
+	{
+		int ret = MessageBox(m_graphics.getHWND(), L"Are you sure you want to leave the old man imprisoned?", L"Return to the real world alone?", MB_YESNO);
+		if (ret == IDYES)
+			return true;
 		return false;
 	}
 	}

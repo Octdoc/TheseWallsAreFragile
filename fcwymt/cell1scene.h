@@ -20,10 +20,10 @@ namespace twaf
 		PixelShader* m_pixelShader;
 		int m_mousex, m_mousey;
 		bool m_clickable;
+		int m_step;
 
 		std::wstring m_userName;
 		Texture* m_dialogTexture;
-		unsigned m_dialogIndex;
 		bool m_dialogConditionMet;
 		bool m_dialogClicked;
 		float m_timeCounter;
@@ -31,13 +31,18 @@ namespace twaf
 		float4 m_lightColor;
 
 	private:
-		void SetCursorIcon();
 		bool OnDialogBox(int x, int y);
-		void DialogClick();
-		const wchar_t* DialogText();
-		void CreateDialogWindow();
-		void UpdateDialog();
-		void GoOutTheDoor();
+		bool OnOldman(int x, int y);
+		bool OnDoor(int x, int y);
+		bool CanClickOldman();
+		bool CanClickDialog();
+		bool CanClickDoor();
+		void SetCursorIcon();
+		void ClickEvent(int x, int y);
+		void NewDialogbox(const wchar_t* text);
+		void ProgressStory(int newStep);
+		void TimedProgressionCheck();
+
 		void FirstUpdateLoop(float deltaTime);
 		void SecondUpdateLoop(float deltaTime);
 
@@ -54,5 +59,6 @@ namespace twaf
 		virtual void KeyDown(int keyCode) override;
 		virtual void KeyUp(int keyCode) override;
 		virtual bool FileDrop(const wchar_t* filename) override;
+		virtual bool AllowExit() override;
 	};
 }

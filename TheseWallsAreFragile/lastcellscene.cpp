@@ -26,7 +26,7 @@ namespace twaf
 	const wchar_t* LastCellScene::DialogText()
 	{
 		LPCWSTR dialog[] = {
-			L"You came here 5 seconds ago and did\nnothing.",
+			L"You came here 3 seconds ago and did\nnothing.",
 			L"Why are you here? Weren't you meant to\nbe somewhere else?",
 			L"You might want to visit the old man\nfirst. He is over there in \"cell1.bat\"."
 		};
@@ -64,7 +64,7 @@ namespace twaf
 		m_graphics.ClearScreen();
 		m_totalTime += deltaTime;
 		if (m_dialogIndex == 0 && m_dialogTexture == nullptr)
-			if (m_totalTime > 5.0f)
+			if (m_totalTime > 3.0f)
 				CreateDialogWindow();
 		if (m_dialogTexture)
 			m_graphics.RenderDialog(m_dialogTexture);
@@ -109,5 +109,9 @@ namespace twaf
 	bool LastCellScene::FileDrop(const wchar_t* filename)
 	{
 		return false;
+	}
+	bool LastCellScene::AllowExit()
+	{
+		return true;
 	}
 }

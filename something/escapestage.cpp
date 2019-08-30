@@ -18,6 +18,7 @@ namespace twaf
 		m_timecounter(0.0f),
 		m_solved(false),
 		m_enemyRuns(false),
+		m_stageLoaded(false),
 		m_issueDialog(),
 		m_stageIndex(index)
 	{
@@ -111,6 +112,7 @@ namespace twaf
 		EscapeStage(graphics, 0)
 	{
 		m_solved = true;
+		m_stageLoaded = true;
 	}
 #pragma endregion
 
@@ -120,6 +122,7 @@ namespace twaf
 	{
 		m_enterDialog = L"I will need your help from the other\nworld.";
 		m_solved = true;
+		m_stageLoaded = true;
 	}
 #pragma endregion
 
@@ -164,8 +167,7 @@ namespace twaf
 		if (visibleColors.x == 0.0f)
 			m_solved = true;
 		if (lightColor.x == 0.0f)
-			if (visibleColors.y == 0.0f || visibleColors.z == 0.0f)
-				m_solved = true;
+			m_solved = true;
 	}
 #pragma endregion
 
@@ -184,7 +186,6 @@ namespace twaf
 		if (visibleColors.x == 0.0f)
 			m_solved = false;
 		if (lightColor.x == 0.0f)
-			if (visibleColors.y == 0.0f || visibleColors.z == 0.0f)
 				m_solved = false;
 	}
 #pragma endregion
@@ -194,7 +195,7 @@ namespace twaf
 		EscapeStage(graphics, 5)
 	{
 		//m_enterDialog = L"I wonder what happened to him.";
-		m_issueDialog = L"He might need something.";
+		m_issueDialog = L"Is he angry or thirsty?";
 		Image angry(L"Media/enemy_angry.png");
 		Image thirsty(L"Media/enemy_thirsty.png");
 		unsigned w = min(angry.Width(), thirsty.Width());
@@ -213,8 +214,7 @@ namespace twaf
 		if (visibleColors.x == 0.0f)
 			m_canDrink = true;
 		if (lightColor.x == 0.0f)
-			if (visibleColors.y == 0.0f || visibleColors.z == 0.0f)
-				m_canDrink = true;
+			m_canDrink = true;
 	}
 	void EscapeStage5::FileDrop(const wchar_t* filename, std::wstring& name, std::wstring& extension)
 	{
